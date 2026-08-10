@@ -5,12 +5,22 @@
 # git push 순서예요
 
 # 처음부터 큰틀이라도 익혀봅시다
-import pathlib
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+import re
+import requests
 
-texts = {
-    p.stem: p.read_test(encoding='utf-8') # 인코딩은 utf-8 로 함
-    for p in sorted(pathlib.Path("posts").glob("*.md")) 
-    # 원본보존하고 복사로 정렬함 posts 파일안에 md파일 전부 가지고오겠다
-}
+SITEMAP = "https://www.dcodelab.kr/sitemap.xml"
 
+# timeout=30 — 30초 넘게 대답이 없으면 포기한다
+response = requests.get(SITEMAP, timeout=30)
+xml = response.text
+
+# <loc>주소</loc> 에서 가운데만 꺼낸다. ? 는 "최소한만 가져가라"
+urls = re.findall(r"<loc>(.*?)</loc>", xml)
+print("전체 주소:", len(urls))
+
+# 이 블로그는 글 주소에만 /p/ 가 들어간다
+posts = [u for u in urls if "/p/" in u]
+print("글 주소:", len(posts))
+
+for u in posts[:3]:
+    print(" ", u)
